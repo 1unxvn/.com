@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘 뭐 먹지? | 점심 메뉴 추천</title>
+    <style>
+        /* 기본 스타일 리셋 및 폰트 설정 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+        }
+
+        body {
+            background-color: #f7f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 메인 컨테이너 카드 */
+        .container {
+            background-color: #ffffff;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+
+        p.subtitle {
+            font-size: 0.95rem;
+            color: #666666;
+            margin-bottom: 30px;
+        }
+
+        /* 결과 표시 영역 */
+        .result-box {
+            background-color: #f0f4f8;
+            border-radius: 15px;
+            padding: 30px 20px;
+            margin-bottom: 25px;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .category {
+            font-size: 0.85rem;
+            color: #ff6b6b;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .menu-name {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #2c3e50;
+            word-break: keep-all;
+        }
+
+        /* 버튼 스타일 */
+        .btn-recommend {
+            width: 100%;
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-recommend:hover {
+            background-color: #ff5252;
+        }
+
+        .btn-recommend:active {
+            transform: scale(0.98);
+        }
+
+        /* 하단 링크 버튼 (네이버/카카오 지도 검색 연동) */
+        .map-link {
+            display: inline-block;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #4a90e2;
+            text-decoration: none;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .map-link.show {
+            opacity: 1;
+        }
+
+        .map-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🍱 오늘 뭐 먹지?</h1>
+        <p class="subtitle">결정장애를 위한 오늘 점심 메뉴 추천!</p>
+
+        <div class="result-box" id="resultBox">
+            <span class="category" id="category">CLICK THE BUTTON</span>
+            <span class="menu-name" id="menuName">버튼을 눌러주세요!</span>
+        </div>
+
+        <button class="btn-recommend" onclick="recommendMenu()">메뉴 추천받기 🎲</button>
+
+        <a href="#" id="mapLink" class="map-link" target="_blank">내 주변에서 이 메뉴 찾기 🔍</a>
+    </div>
+
+    <script>
+        // 추천할 점심 메뉴 목록 (카테고리별)
+        const menuList = [
+            { category: "한식", name: "김치찌개" },
+            { category: "한식", name: "제육볶음" },
+            { category: "한식", name: "비빔밥" },
+            { category: "한식", name: "순대국밥" },
+            { category: "한식", name: "된장찌개" },
+            { category: "중식", name: "짜장면 & 짬뽕" },
+            { category: "중식", name: "볶음밥" },
+            { category: "중식", name: "마라탕" },
+            { category: "일식", name: "돈가스" },
+            { category: "일식", name: "초밥" },
+            { category: "일식", name: "라멘" },
+            { category: "일식", name: "가츠동" },
+            { category: "양식", name: "파스타" },
+            { category: "양식", name: "수제버거" },
+            { category: "양식", name: "피자" },
+            { category: "분식", name: "떡볶이 & 튀김" },
+            { category: "분식", name: "라면에 김밥" },
+            { category: "기타", name: "쌀국수" },
+            { category: "기타", name: "샌드위치 & 샐러드" },
+            { category: "기타", name: "카레라이스" }
+        ];
+
+        function recommendMenu() {
+            const categoryElem = document.getElementById("category");
+            const menuNameElem = document.getElementById("menuName");
+            const mapLinkElem = document.getElementById("mapLink");
+
+            // 애니메이션 효과를 위한 카운터 효과 (랜덤으로 굴러가는 느낌)
+            let counter = 0;
+            const interval = setInterval(() => {
+                const tempMenu = menuList[Math.floor(Math.random() * menuList.length)];
+                categoryElem.innerText = tempMenu.category;
+                menuNameElem.innerText = tempMenu.name;
+                counter++;
+
+                if (counter > 10) {
+                    clearInterval(interval);
+                    // 최종 메뉴 결정
+                    const finalMenu = menuList[Math.floor(Math.random() * menuList.length)];
+                    categoryElem.innerText = finalMenu.category;
+                    menuNameElem.innerText = finalMenu.name;
+
+                    // 네이버 지도에서 해당 메뉴 검색 링크 생성
+                    mapLinkElem.href = `https://map.naver.com/v5/search/${encodeURIComponent(finalMenu.name)}`;
+                    mapLinkElem.classList.add("show");
+                }
+            }, 50); // 0.05초마다 메뉴 변경
+        }
+    </script>
+</body>
+</html>
